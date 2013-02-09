@@ -1,0 +1,4 @@
+(defcinterface RamRod
+    (defcfunc void foobar ((int foo) (double bar)))
+    (defcfunc double foobazBong ()))
+
