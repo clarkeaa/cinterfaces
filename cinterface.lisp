@@ -3,8 +3,6 @@
 
 ;(declaim (optimize (speed 0) (space 0) (debug 3)))
 
-(defparameter *interface* nil)
-
 (defclass method-arg () 
   ((type :initarg :type)
    (name :initarg :name)))
@@ -133,14 +131,14 @@
       (setf methods (cons new-method methods)))))
 
 (defmacro |defcfunc| (return-type name args)
-  `(add-c-func *interface* ',return-type ,(symbol-name name) ',args))
+  `(add-c-func current-interface ',return-type ,(symbol-name name) ',args))
 
 (defmacro |defcinterface| (name &rest body)
   `(progn
-     (setf *interface* (make-instance 'interface))
-     (setf (slot-value *interface* 'name) ,(symbol-name name))
-     ,@body
-     *interface*))     
+     (let ((current-interface (make-instance 'interface)))
+       (setf (slot-value current-interface 'name) ,(symbol-name name))
+       ,@body
+       current-interface)))
 
 (defmacro with-preserve-reader (&rest body)
     `(unwind-protect 
@@ -153,7 +151,7 @@
   (let ((data nil))
     (with-preserve-reader 
         (setf data (with-open-file (in path) (read in))))
-    (let ((int (eval (macroexpand data))))
+    (let ((int (eval data)))
       (write-header int header-stream)
       (write-source int source-stream)
       t)))
